@@ -16,3 +16,6 @@ build_project:
     # Execute solver
 
     - ./brusselator explicit 40 40 30 0.01 1 1 3
+
+    - echo "Generated output files:"
+    - ls -lh
