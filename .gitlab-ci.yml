@@ -17,5 +17,9 @@ build_project:
 
     - ./brusselator explicit 40 40 30 0.01 1 1 3
 
-    - echo "Generated output files:"
+    - echo "Contents of build directory:"
     - ls -lh
+
+
+    - echo "Searching for VTK files...."
+    - find results
