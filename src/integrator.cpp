@@ -23,7 +23,6 @@ Eigen::VectorXd integrate::Euler(
     const SimulationConfig& config
 )
 {
-    // ToDo
     return C+config.dt*f(C);
 
 };

@@ -7,4 +7,4 @@
 void writeVTK(const Eigen::VectorXd& C,const SimulationConfig& config, int timestep); 
 
 
-void appendPVDentry(int timestep, double time);
+void appendPVDentry(int timestep, double time, const SimulationConfig& config);

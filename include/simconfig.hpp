@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Sparse>
+#include <string>
 
 class SimulationConfig
 {
@@ -30,6 +31,8 @@ class SimulationConfig
 	double D2=1e-6;
 
     bool reactionEnabled= true;
+
+    std::string outputDirectory = "../results";
 
     Eigen::SparseMatrix<double> A;
     Eigen::SparseMatrix<double> A_tilde;

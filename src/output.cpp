@@ -60,11 +60,12 @@ void writeVTK(const Eigen::VectorXd& C,const SimulationConfig& config, int times
     }
 
     grid->GetPointData()->AddArray(C2array);
-    grid->GetPointData()->SetActiveScalars("C2");
+    grid->GetPointData()->SetActiveScalars("C1");
 
     std::ostringstream filename; //empty string
     //append pieces to it
-    filename << "output_";
+    
+    filename << config.outputDirectory <<"/output_";
 
     //append timestep
 
@@ -90,7 +91,7 @@ void writeVTK(const Eigen::VectorXd& C,const SimulationConfig& config, int times
 
 }
 
-void appendPVDentry(int timestep,double time)
+void appendPVDentry(int timestep,double time, const SimulationConfig& config)
 {
     //open solution.pvd in append mode
     std::ofstream pvd("solution.pvd", std::ios::app);
@@ -98,7 +99,7 @@ void appendPVDentry(int timestep,double time)
     //Build the VTK filename
     std::ostringstream filename;
 
-    filename <<"output_" << std::setw(4) << std::setfill('0')
+    filename << config.outputDirectory <<"/output_" << std::setw(4) << std::setfill('0')
         << timestep << ".vti";
 
     // Write one DataSet entry

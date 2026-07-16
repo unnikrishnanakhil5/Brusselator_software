@@ -1,179 +1,114 @@
-import argparse
-import os
-
+import sys
 import numpy as np
-import vtk
-from vtk.util.numpy_support import vtk_to_numpy
+import pyvista as pv
 
+# -----------------------------
+# Read files
+# -----------------------------
+reference = pv.read("../resources/final_output_30s.vts")
 
-def read_vtk(filename):
-    """
-    Read a VTK XML dataset (.vti or .vts).
+exp = pv.read("../results/Explicit_Euler/output_3000.vti")
+rk4 = pv.read("../results/Runge-Kutta/output_3000.vti")
+imp = pv.read("../results/Implicit_Euler/output_3000.vti")
 
-    Parameters
-    ----------
-    filename : str
-        Path to the VTK file.
+# -----------------------------
+# Extract arrays
+# -----------------------------
+ref_C1 = reference["C1"]
+ref_C2 = reference["C2"]
 
-    Returns
-    -------
-    vtkDataSet
-        Loaded VTK dataset.
-    """
+exp_C1 = exp["C1"]
+exp_C2 = exp["C2"]
 
-    extension = os.path.splitext(filename)[1].lower()
+rk4_C1 = rk4["C1"]
+rk4_C2 = rk4["C2"]
 
-    if extension == ".vti":
-        reader = vtk.vtkXMLImageDataReader()
+imp_C1 = imp["C1"]
+imp_C2 = imp["C2"]
 
-    elif extension == ".vts":
-        reader = vtk.vtkXMLStructuredGridReader()
+# -----------------------------
+# Error metrics
+# -----------------------------
 
-    else:
-        raise ValueError(f"Unsupported file format: {extension}")
+# L2 norm
+def L2(a, b):
+    return np.sqrt(np.mean((a - b) ** 2))
 
-    reader.SetFileName(filename)
-    reader.Update()
+# Maximum Error
+def Linf(a, b):
+    return np.max(np.abs(a - b))
 
-    dataset = reader.GetOutput()
+# Mean Absolute Error
 
-    if dataset is None:
-        raise RuntimeError(f"Failed to read {filename}")
+def MAE(a, b):
+    return np.mean(np.abs(a,b))
 
-    return dataset
+# -----------------------------
+# Explicit Euler
+# -----------------------------
+exp_L2_C1 = L2(exp_C1, ref_C1)
+exp_Linf_C1 = Linf(exp_C1, ref_C1)
+exp_MAE_C1 = MAE(exp_C1, ref_C1)
 
+exp_L2_C2 = L2(exp_C2, ref_C2)
+exp_Linf_C2 = Linf(exp_C2, ref_C2)
+exp_MAE_C2 = MAE(exp_C2, ref_C2)
 
-def print_dataset_info(dataset, title):
-    """
-    Print basic information about a VTK dataset.
-    """
+# -----------------------------
+# RK4
+# -----------------------------
+rk4_L2_C1 = L2(rk4_C1, ref_C1)
+rk4_Linf_C1 = Linf(rk4_C1, ref_C1)
+rk4_MAE_C1 = MAE(rk4_C1, ref_C1)
 
-    print("=" * 60)
-    print(title)
-    print("=" * 60)
+rk4_L2_C2 = L2(rk4_C2, ref_C2)
+rk4_Linf_C2 = Linf(rk4_C2, ref_C2)
+rk4_MAE_C2 = MAE(rk4_C2, ref_C2)
 
-    print(f"Dataset type      : {dataset.GetClassName()}")
-    print(f"Number of points  : {dataset.GetNumberOfPoints()}")
-    print(f"Number of cells   : {dataset.GetNumberOfCells()}")
+# -----------------------------
+# Implicit Euler
+# -----------------------------
+imp_L2_C1 = L2(imp_C1, ref_C1)
+imp_Linf_C1 = Linf(imp_C1, ref_C1)
+imp_MAE_C1 = MAE(imp_C1, ref_C1)
 
-    point_data = dataset.GetPointData()
+imp_L2_C2 = L2(imp_C2, ref_C2)
+imp_Linf_C2 = Linf(imp_C2, ref_C2)
+imp_MAE_C2 = MAE(imp_C2, ref_C2)
 
-    print(f"Point arrays      : {point_data.GetNumberOfArrays()}")
+# -----------------------------
+# Tolerances
+# -----------------------------
+TOL_L2 = 0.42
+TOL_LINF = 2.9
+TOL_MAE = 3.2
 
-    print("\nAvailable arrays:")
+passed = (
+    exp_L2_C1 < TOL_L2 and
+    exp_Linf_C1 < TOL_LINF and
+    exp_MAE_C1 < TOL_MAE and
 
-    for i in range(point_data.GetNumberOfArrays()):
-        print(f"  {i}: {point_data.GetArrayName(i)}")
+    exp_L2_C2 < TOL_L2 and
+    exp_Linf_C2 < TOL_LINF and
+    exp_MAE_C2 < TOL_MAE and
 
-    print()
+    rk4_L2_C1 < TOL_L2 and
+    rk4_Linf_C1 < TOL_LINF and
+    rk4_MAE_C1 < TOL_MAE and
 
+    rk4_L2_C2 < TOL_L2 and
+    rk4_Linf_C2 < TOL_LINF and
+    rk4_MAE_C2 < TOL_MAE and
 
-def get_scalar(dataset, name):
-    """
-    Extract a scalar field from the dataset.
+    imp_L2_C1 < TOL_L2 and
+    imp_Linf_C1 < TOL_LINF and
+    imp_MAE_C1 < TOL_MAE and
 
-    Parameters
-    ----------
-    dataset : vtkDataSet
-    name : str
+    imp_L2_C2 < TOL_L2 and
+    imp_Linf_C2 < TOL_LINF and
+    imp_MAE_C2 < TOL_MAE
+)
 
-    Returns
-    -------
-    numpy.ndarray
-    """
+print("PASS" if passed else "FAIL")
 
-    vtk_array = dataset.GetPointData().GetArray(name)
-
-    if vtk_array is None:
-        raise RuntimeError(f"Array '{name}' not found.")
-
-    return vtk_to_numpy(vtk_array)
-
-
-def compare_scalar(solution, reference, name):
-    """
-    Compare two scalar fields and print error statistics.
-    """
-
-    error = solution - reference
-
-    abs_error = np.abs(error)
-
-    max_error = np.max(abs_error)
-    mean_error = np.mean(abs_error)
-    rmse = np.sqrt(np.mean(error**2))
-    l2_error = np.linalg.norm(error)
-    relative_l2 = l2_error / np.linalg.norm(reference)
-
-    print("=" * 60)
-    print(name)
-    print("=" * 60)
-
-    print(f"Maximum error : {max_error:.6e}")
-    print(f"Mean error    : {mean_error:.6e}")
-    print(f"RMSE          : {rmse:.6e}")
-    print(f"L2 error      : {l2_error:.6e}")
-    print(f"Relative L2   : {relative_l2:.6e}")
-
-    print()
-
-    return relative_l2
-
-
-def main():
-
-    parser = argparse.ArgumentParser(
-        description="Compare a solver solution against a reference solution."
-    )
-
-    parser.add_argument(
-        "solution",
-        help="Solver output (.vti)"
-    )
-
-    parser.add_argument(
-        "reference",
-        help="Reference solution (.vts)"
-    )
-
-    args = parser.parse_args()
-
-    print("\nReading datasets...\n")
-
-    solution = read_vtk(args.solution)
-    reference = read_vtk(args.reference)
-
-    print_dataset_info(solution, "My Solution")
-    print_dataset_info(reference, "Reference Solution")
-
-    if solution.GetNumberOfPoints() != reference.GetNumberOfPoints():
-        raise RuntimeError("Number of points does not match.")
-
-    if solution.GetNumberOfCells() != reference.GetNumberOfCells():
-        raise RuntimeError("Number of cells does not match.")
-
-    C1_solution = get_scalar(solution, "C1")
-    C2_solution = get_scalar(solution, "C2")
-
-    C1_reference = get_scalar(reference, "C1")
-    C2_reference = get_scalar(reference, "C2")
-
-    print("Comparing scalar fields...\n")
-
-    rel_C1 = compare_scalar(C1_solution, C1_reference, "C1")
-    rel_C2 = compare_scalar(C2_solution, C2_reference, "C2")
-
-    tolerance = 4
-
-    print("=" * 60)
-
-    if rel_C1 < tolerance and rel_C2 < tolerance:
-        print("Validation PASSED")
-        return 0
-
-    print("Validation FAILED")
-    return 1
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+sys.exit(0 if passed else 1)

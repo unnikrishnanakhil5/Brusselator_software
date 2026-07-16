@@ -39,40 +39,98 @@ void endPVD()
     pvd << "</VTKFile>\n";
 }
 
-int main() 
+int main(int argc, char*argv[]) 
 
 {
-    std::cout << "=======================================\n";
-    std::cout << "Select Time Integrator Method\n";
-    std::cout << "=======================================\n";
-    std::cout << "1. Classical Runge-Kutta (RK4)\n";
-    std::cout << "2. Implicit Backward Euler\n ";
-    std::cout << "Choice: ";
+    const int rk4 = 1;
+    const int implicit = 2;
+    const int explicitEuler = 3;
+    int method = rk4; // default
 
-    // create a return type int for main and call it method
-    int method;
-
-    const int rk4= 1;
-    const int implicit= 2;
-    std::cin >> method;
-
-
-    // Validate the input from the user
-
-    if (method !=1 && method !=2)
+    if(argc > 1)
     {
-        std::cerr << "Invalid choice.\n";
-        return -1;
+        std::string solver = argv[1];
+
+        if(solver=="rk4")
+            method=rk4;
+        else if(solver=="implicit")
+            method=implicit;
+        else if(solver=="explicit")
+            method=explicitEuler;
+        else
+        {
+            std::cerr << "Unknown solver.\n";
+            return EXIT_FAILURE;
+        }
     }
+
+    if(argc > 2)
+        config.nx = std::stoi(argv[2]);
+    if(argc > 3)
+    config.ny = std::stoi(argv[3]);
+    if(argc > 4)
+    config.endtime = std::stod(argv[4]);
+    if(argc > 5)
+    config.dt = std::stod(argv[5]);
+    if(argc > 6)
+    config.writeInterval = std::stod(argv[6]);
+    if(argc > 7)
+    config.Ca = std::stod(argv[7]);
+    if(argc > 8)
+    config.Cb = std::stod(argv[8]);
+
+    //
+
+    std::cout << "Command: ";
+
+    for(int i=0; i< argc; i++)
+    {
+        std::cout << argv[i] << " ";
+    }
+
+    std::cout << "\n";
+    std::cout << "=========================================\n";
+    std::cout << "Simulation Configuration\n";
+    std::cout << "=========================================\n";
+
+    std::cout << "Solver        : ";
 
     if(method == rk4)
     {
-        std::cout << "\nUsing Classical Runge-Kutta solver ...\n\n";
+        std::cout << "Classical Runge-Kutta solver (RK4)\n";
+        config.outputDirectory = "../results/Runge-Kutta";
     }
     else if(method == implicit)
     {
-        std::cout << "\nUsing Implicit Backward Euler Solver ....\n\n";
+        config.outputDirectory = "../results/Implicit_Euler";
+        std::cout << "Implicit Backward Euler\n";
     }
+    else if(method == explicitEuler)
+    {
+        config.outputDirectory = "../results/Explicit_Euler";
+        std::cout << "Explicit Forward Euler Solver\n";
+    }
+
+    std::cout << "Grid            : " << config.nx
+        << " x " << config.ny << "\n";
+
+    std::cout << "End Time        : "
+              << config.endtime 
+              << "s\n";
+
+    std::cout << "dt              : "
+              << config.dt << "s\n";
+
+    std::cout << "Write Interval  : "
+              << config.writeInterval << " s\n";
+
+    std::cout << "Ca              : "
+              << config.Ca << "\n";
+
+    std::cout << "Cb              : "
+              << config.Cb << "\n";
+
+    std::cout << "=========================================\n\n";
 
     //Create a sparse matrix A that stores the coefficients 
     //of the central differencing scheme for the spatial 
@@ -85,46 +143,44 @@ int main()
     //Initialize the state vector C_tilde as C
     typ C= brusselator::initializeState(config);
 
-    int timestep=0;
-
-    double t=0.0;
-
-    double nextWriteTime=0.0;
 
     beginPVD();
 
-    while(t<=config.endtime)
+    int nSteps =static_cast<int>(config.endtime /config.dt);
+
+    int writeEvery =static_cast<int>(config.writeInterval /
+        config.dt);
+
+    for (int timestep=0;timestep<=nSteps;timestep++)
     {
-        if (t>= nextWriteTime)
+        double t=timestep*config.dt;
+
+        if(timestep % writeEvery == 0)
         {
-            writeVTK(C,config,timestep);
+            writeVTK(C, config, timestep);
 
-            appendPVDentry(timestep, t);
-
-            nextWriteTime+= config.writeInterval;
+            appendPVDentry(timestep, t, config);
         }
 
-        timestep=timestep+1;
-
-        if(method == rk4)
+        if (timestep < nSteps)
         {
-            C=integrate::rk4(f,C,config);
+            if(method == rk4)
+            {
+                C=integrate::rk4(f,C,config);
+            }
+            else if(method == implicit)
+            {
+                C=integrate::implicitEuler(C, config);
+            }
+            else if(method == explicitEuler)
+            {
+                C=integrate::Euler(f,C, config);
+            }
         }
-
-        else if(method == implicit)
-        {
-            C=integrate::implicitEuler(C,config);
-        }
-
-        
-
-        t+=config.dt;
     }
 
     endPVD();
 
     return 0;
-
-
 
 }
