@@ -98,16 +98,16 @@ int main(int argc, char*argv[])
     if(method == rk4)
     {
         std::cout << "Classical Runge-Kutta solver (RK4)\n";
-        config.outputDirectory = "../results/Runge-Kutta";
+        config.outputDirectory = "../results/Runge-Kutta/";
     }
     else if(method == implicit)
     {
-        config.outputDirectory = "../results/Implicit_Euler";
+        config.outputDirectory = "../results/Implicit_Euler/";
         std::cout << "Implicit Backward Euler\n";
     }
     else if(method == explicitEuler)
     {
-        config.outputDirectory = "../results/Explicit_Euler";
+        config.outputDirectory = "../results/Explicit_Euler/";
         std::cout << "Explicit Forward Euler Solver\n";
     }
 
@@ -146,6 +146,13 @@ int main(int argc, char*argv[])
 
     beginPVD();
 
+    //Adding the file to write the residual history
+    std::ofstream residualFile(config.outputDirectory +
+            "newton_history.txt");
+
+    // header for the newton.txt
+    residualFile << "TimeStep\tNewtonIteration\tResidual\n";
+
     int nSteps =static_cast<int>(config.endtime /config.dt);
 
     int writeEvery =static_cast<int>(config.writeInterval /
@@ -170,7 +177,8 @@ int main(int argc, char*argv[])
             }
             else if(method == implicit)
             {
-                C=integrate::implicitEuler(C, config);
+                C=integrate::implicitEuler(C, config,timestep,
+                        residualFile);
             }
             else if(method == explicitEuler)
             {

@@ -2,7 +2,14 @@
 #Build directory
 #--------------------------
 build/
-results/
+
+#--------------------------
+#Generated simulation outputs
+#--------------------------
+results/**/*.vti
+results/**/*.pvd
+scripts/*.pvd
+
 
 #--------------------------
 #CMake generated files

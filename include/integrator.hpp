@@ -1,6 +1,7 @@
 #pragma once
 #include <Eigen/Dense>
 #include "simconfig.hpp"
+#include <fstream>
 
 namespace integrate {
     /**
@@ -43,6 +44,7 @@ namespace integrate {
 
 
     Eigen::VectorXd implicitEuler(const Eigen::VectorXd& Cold,
-            const SimulationConfig& config);
+            const SimulationConfig& config, int timestep,
+            std::ofstream& residualFile);
 
 } // end namespace integrate

@@ -1,0 +1,14 @@
+image: registry.git-ce.rwth-aachen.de/akhil.unnikrishnan/pt4sc_2026_akhil_unnikrishnan:latest
+
+stages:
+  - build
+
+build_project:
+  stage: build
+
+  script:
+    - rm -rf build
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make

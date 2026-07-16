@@ -27,7 +27,8 @@ Eigen::VectorXd integrate::Euler(
 
 };
 
-Eigen::VectorXd integrate::implicitEuler(const Eigen::VectorXd& Cold, const SimulationConfig& config)
+Eigen::VectorXd integrate::implicitEuler(const Eigen::VectorXd& Cold, const SimulationConfig& config, int timestep,
+        std::ofstream& residualFile)
 {
     // initial guess
     Eigen::VectorXd Cguess = Cold;
@@ -49,9 +50,8 @@ Eigen::VectorXd integrate::implicitEuler(const Eigen::VectorXd& Cold, const Simu
         Eigen::VectorXd residual=brusselator::computeResidual(
                 Cguess, Cold,config);
 
-        std::cout << "Newton Iteration"
-            << i << "Residual = " <<residual.norm()
-            <<std::endl;
+        residualFile << timestep << "\t"
+            << i << "\t" << residual.norm() << "\n";
         if(residual.norm() < tolerance)
         {
             break;
