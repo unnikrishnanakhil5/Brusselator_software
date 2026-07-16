@@ -9,6 +9,8 @@ build/
 results/**/*.vti
 results/**/*.pvd
 scripts/*.pvd
+results/*
+!results/Explicit_Euler/
 
 
 #--------------------------
