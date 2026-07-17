@@ -1,4 +1,4 @@
-# Brusselator Reaction-Diffusion Solver
+# Scientific Computing Final Project
 
 Finite Difference Solver for the Two-Dimensional Brusselator Reaction-Diffusion System
 
@@ -6,56 +6,36 @@ Finite Difference Solver for the Two-Dimensional Brusselator Reaction-Diffusion 
 
 ## Overview
 
-This project implements a numerical solver for the two-dimensional Brusselator reaction-diffusion equations using the Finite Difference Method (FDM). The project was developed as the final project for the course **Programming Tools for Scientific Computing** at **TU Darmstadt**.
+This repository contains the implementation of a finite difference solver for the two-dimensional Brusselator reaction-diffusion system developed for the course **Programming Tools for Scientific Computing (PT4SC)** at **Technische Universität Darmstadt**.
 
-The solver supports both explicit and implicit time integration methods and writes simulation results in VTK format for visualization in ParaView.
+The project includes:
 
-The project also includes
-
-- CMake build system
-- Bash automation for parameter studies
-- Docker environment
+- Explicit Euler solver
+- Classical Runge-Kutta (RK4) solver
+- Implicit Backward Euler solver
+- Bash scripts for parameter variation
+- Docker development environment
 - GitLab CI/CD pipeline
-- Sparse matrix implementation using Eigen
+- VTK output for visualization with ParaView
 
 ---
 
-## Mathematical Model
+# Project Structure
 
-The governing equations are
-
-∂C₁/∂t = D₁∇²C₁ + ω₁(C₁,C₂)
-
-∂C₂/∂t = D₂∇²C₂ + ω₂(C₁,C₂)
-
-
-where
-
-ω₁ = Ca + C₁²C₂ − CbC₁ − C₁
-
-ω₂ = CbC₁ − C₁²C₂
-
-Spatial derivatives are discretized using second-order central finite differences with zero-gradient (Neumann) boundary conditions.
-
-Time integration methods include
-
-- Classical Runge-Kutta (Explicit)
-- Backward Euler (Implicit)
-- Inexact Newton Method for nonlinear systems
-
-Sparse matrices from the Eigen library are used for efficient computation.
-
----
-
-## Project Structure
-
+```text
 scientific_computing_project/
-
 │
 ├── CMakeLists.txt
 ├── README.md
-├── Dockerfile
-├── .gitlab-ci.yml
+├── requirements.txt
+├── startContainer.sh
+│
+├── configs/
+│   ├── Dockerfile
+│   ├── custom_bashrc
+│   ├── jupyter_lab_config.py
+│   ├── neovim_config
+│   └── python.md
 │
 ├── include/
 │   ├── brusselator.hpp
@@ -64,313 +44,234 @@ scientific_computing_project/
 │   └── simconfig.hpp
 │
 ├── src/
-│   ├── solver.cpp
 │   ├── brusselator.cpp
 │   ├── integrator.cpp
-│   └── output.cpp
+│   ├── output.cpp
+│   └── solver.cpp
 │
 ├── scripts/
-│   └── parameter_variation.sh
+│   ├── compare_solution.py
+│   ├── solution.pvd
+│   ├── varyCb.sh
+│   └── varyDt.sh
 │
-├── build/
+├── resources/
+│   └── final_output_30s.vts
 │
-└── output/
+└── results/
+    ├── Explicit_Euler/
+    ├── Runge-Kutta/
+    ├── Implicit_Euler/
+    ├── varyCb/
+    │   ├── Cb_1.5/
+    │   ├── Cb_2.0/
+    │   ├── Cb_2.5/
+    │   └── Cb_3.0/
+    │
+    ├── varydt/
+    │   ├── dt_0.01/
+    │   ├── dt_0.02/
+    │   ├── dt_0.03/
+    │   ├── dt_0.04/
+    │   └── dt_0.05/
+    │
+    ├── validation.ipynb
+    └── Comparison of all methods.png
 ```
 
 ---
 
-# Dependencies
+# Building the Code
 
-The project requires
+The project is intended to be built inside the provided Docker container.
 
-- C++17 compiler
-- CMake (≥3.16)
-- Eigen3
-- VTK
-- Git
+## 1. Build the Docker image
 
-Ubuntu installation
+From the project root directory,
 
 ```bash
-sudo apt update
-
-sudo apt install \
-build-essential \
-cmake \
-libeigen3-dev \
-libvtk9-dev
+docker build -f configs/Dockerfile -t scientific-computing .
 ```
 
----
-
-# Building the Project
-
-Clone the repository
+## 2. Start the container
 
 ```bash
-git clone <repository-url>
-
-cd scientific_computing_project
+./startContainer.sh
 ```
 
-Create the build directory
+## 3. Configure and build the project
+
+Inside the container,
 
 ```bash
-mkdir build
+mkdir -p build
 cd build
-```
 
-Configure
-
-```bash
 cmake ..
-```
-
-Compile
-
-```bash
 make -j
 ```
 
-Executable
-
-```
-build/brusselator
-```
+The executable will be generated inside the `build/` directory.
 
 ---
 
 # Running a Single Simulation
 
-General syntax
+From the `build` directory, execute
 
 ```bash
 ./brusselator \
+<solver> \
 <nx> \
 <ny> \
-<t_end> \
+<tEnd> \
 <dt> \
-<write_interval> \
+<writeInterval> \
 <Ca> \
-<Cb> \
-<method>
+<Cb>
 ```
 
-Example
+Example using the Runge-Kutta solver
 
 ```bash
 ./brusselator \
+rk4 \
 40 \
 40 \
 30 \
 0.01 \
 1 \
 1 \
-3 \
-rk4
+3
 ```
 
-or
+Example using the Implicit Euler solver
 
 ```bash
 ./brusselator \
+implicit \
 40 \
 40 \
-30 \
+5 \
 0.05 \
 1 \
 1 \
-3 \
-implicit
+3
 ```
 
 where
 
 | Parameter | Description |
-|------------|-------------|
-| nx | Number of grid points (x-direction) |
-| ny | Number of grid points (y-direction) |
-| t_end | Simulation end time |
-| dt | Time step |
-| write_interval | Output interval |
-| Ca | Brusselator parameter |
-| Cb | Brusselator parameter |
-| method | rk4 or implicit |
+|-----------|-------------|
+| `nx` | Number of grid points in the x-direction |
+| `ny` | Number of grid points in the y-direction |
+| `tEnd` | Simulation end time |
+| `dt` | Time step |
+| `writeInterval` | Time interval between output files |
+| `Ca` | Brusselator parameter |
+| `Cb` | Brusselator parameter |
+| `method` | `explicit`, `rk4`, or `implicit` |
 
 ---
 
-# Output
+# Running the Parameter Variation Scripts
 
-Simulation results are written in VTK format.
+Two Bash scripts are provided for automated parameter studies.
 
-Example
+## Parameter variation of Cb
 
-```
-output/
+```bash
+cd scripts
 
-output_0000.vti
-output_0100.vti
-output_0200.vti
-...
+./varyCb.sh
 ```
 
-These files can be visualized using ParaView.
+The script performs simulations for
+
+- Cb = 1.5
+- Cb = 2.0
+- Cb = 2.5
+- Cb = 3.0
+
+The results are stored inside
+
+```text
+results/varyCb/
+```
 
 ---
 
-# Parameter Variation Script
-
-The project includes a Bash script for automated parameter studies.
-
-Example
+## Parameter variation of the time step
 
 ```bash
-./parameter_variation.sh \
---parameter Cb \
---values 1.5 2.0 2.5 3.0
+cd scripts
+
+./varyDt.sh
 ```
 
-or
+The script performs simulations for
 
-```bash
-./parameter_variation.sh \
---parameter dt \
---values 0.01 0.02 0.03 0.04 0.05
+- dt = 0.01
+- dt = 0.02
+- dt = 0.03
+- dt = 0.04
+- dt = 0.05
+
+The results are stored inside
+
+```text
+results/varydt/
 ```
 
-For each simulation the script
+---
 
-- creates a start script
-- runs the solver
-- stores outputs
-- creates a dedicated directory
+# Result Organization
 
-Example
+Simulation outputs are organized inside the `results/` directory.
 
-```
+```text
 results/
-
-Cb_1.5/
-Cb_2.0/
-Cb_2.5/
-Cb_3.0/
+│
+├── Explicit_Euler/
+│
+├── Runge-Kutta/
+│
+├── Implicit_Euler/
+│
+├── varyCb/
+│   ├── Cb_1.5/
+│   ├── Cb_2.0/
+│   ├── Cb_2.5/
+│   └── Cb_3.0/
+│
+├── varydt/
+│   ├── dt_0.01/
+│   ├── dt_0.02/
+│   ├── dt_0.03/
+│   ├── dt_0.04/
+│   └── dt_0.05/
+│
+├── validation.ipynb
+└── Comparison of all methods.png
 ```
 
----
-
-# Numerical Methods
-
-## Spatial Discretization
-
-- Second-order central differences
-- Uniform Cartesian grid
-- Neumann boundary conditions
-
-## Explicit Solver
-
-- Classical Runge-Kutta (RK4)
-
-## Implicit Solver
-
-- Backward Euler
-- Inexact Newton iterations
-- Sparse Jacobian
-- Eigen sparse linear solver
+- `Explicit_Euler/` contains simulation results generated using the Explicit Euler method.
+- `Runge-Kutta/` contains results generated using the classical RK4 method.
+- `Implicit_Euler/` contains results generated using the Implicit Backward Euler solver.
+- `varyCb/` contains the results from the parameter study in which the Brusselator parameter **Cb** is varied.
+- `varydt/` contains the results from the parameter study in which the timestep **dt** is varied.
+- `validation.ipynb` is used for post-processing and validation.
+- `Comparison of all methods.png` is an image that compares the 3 numerical methods with the reference solution.
 
 ---
 
 # Visualization
 
-Simulation outputs are written as VTK ImageData files.
+Simulation results are written in VTK (`.vti`) format and can be visualized using ParaView from inside the container
 
-Open ParaView
+To visualize the solution:
 
-```
-File
-→ Open
-→ output_3000.vti
-```
-
-Color by
-
-```
-C1
-```
-
-or
-
-```
-C2
-```
-
----
-
-# Docker
-
-Build image
-
-```bash
-docker build -t brusselator .
-```
-
-Run container
-
-```bash
-docker run brusselator
-```
-
----
-
-# CI/CD
-
-The GitLab CI pipeline automatically
-
-- builds the project
-- executes CMake
-- runs parameter variation tests
-- compares the numerical solution against the reference solution
-
----
-
-# Reference Simulation
-
-The reference case supplied in the project description uses
-
-| Parameter | Value |
-|-----------|------:|
-| nx | 40 |
-| ny | 40 |
-| dx | 0.005 m |
-| dy | 0.005 m |
-| t_end | 30 s |
-| dt | 0.01 s |
-| Ca | 1 |
-| Cb | 3 |
-| D₁ | 1×10⁻⁵ m²/s |
-| D₂ | 1×10⁻⁶ m²/s |
-
----
-
-# Author
-
-**Akhil Unnikrishnan**
-
-M.Sc. Aerospace Engineering
-
-Technische Universität Darmstadt
-
----
-
-# Course
-
-Programming Tools for Scientific Computing
-
-Summer Semester 2026
-
-TU Darmstadt
-
----
-
-# License
-
-This project was developed for academic purposes as part of the Programming Tools for Scientific Computing course.
+1. Open ParaView.
+2. Open the generated `.vti` file or `scripts/solution.pvd`.
+3. Click **Apply**.
+4. Select the desired scalar field (`C1` or `C2`) from the **Color By** menu.
