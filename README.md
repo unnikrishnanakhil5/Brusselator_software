@@ -15,7 +15,6 @@ The project includes:
 - Implicit Backward Euler solver
 - Bash scripts for parameter variation
 - Docker development environment
-- GitLab CI/CD pipeline
 - VTK output for visualization with ParaView
 
 ---
@@ -30,54 +29,52 @@ scientific_computing_project/
 ├── requirements.txt
 ├── startContainer.sh
 │
-├── configs/
+├── build/                          # CMake build directory
+│
+├── configs/                        # Docker and development configurations
 │   ├── Dockerfile
 │   ├── custom_bashrc
 │   ├── jupyter_lab_config.py
 │   ├── neovim_config
 │   └── python.md
 │
-├── include/
+├── include/                        # C++ header files
 │   ├── brusselator.hpp
 │   ├── integrator.hpp
 │   ├── output.hpp
 │   └── simconfig.hpp
 │
-├── src/
+├── src/                             # C++ source files
 │   ├── brusselator.cpp
 │   ├── integrator.cpp
 │   ├── output.cpp
 │   └── solver.cpp
 │
-├── scripts/
-│   ├── compare_solution.py
-│   ├── solution.pvd
+├── resources/                       # Reference data
+│   └── final_output_30s.vts
+│
+├── scripts/                         # Parameter variation scripts
 │   ├── varyCb.sh
 │   └── varyDt.sh
 │
-├── resources/
-│   └── final_output_30s.vts
+├── tests/                           # Automated testing
+│   │
+│   ├── unit/                        # Unit tests
+│   │   ├── test_jacobian.cpp
+│   │   ├── test_laplacian.cpp
+│   │   └── test_reaction.cpp
+│   │
+│   └── component/                   # Component-level tests
+│       ├── parameter_cb_rk4.ipynb
+│       ├── parameter_dt_implicit.ipynb
+│       └── test_component.py
 │
-└── results/
-    ├── Explicit_Euler/
-    ├── Runge-Kutta/
-    ├── Implicit_Euler/
-    ├── varyCb/
-    │   ├── Cb_1.5/
-    │   ├── Cb_2.0/
-    │   ├── Cb_2.5/
-    │   └── Cb_3.0/
-    │
-    ├── varydt/
-    │   ├── dt_0.01/
-    │   ├── dt_0.02/
-    │   ├── dt_0.03/
-    │   ├── dt_0.04/
-    │   └── dt_0.05/
-    │
-    ├── validation.ipynb
-    └── Comparison of all methods.png
+├── validation/                      # Numerical validation
+│   └── validation.ipynb
+│
+└── results/                         # Simulation results and output files
 ```
+
 
 ---
 
@@ -115,21 +112,28 @@ The executable will be generated inside the `build/` directory.
 
 ---
 
-# Running a Single Simulation
+# How to run a single simulation?
 
-From the `build` directory, execute
+What has been given as an answer to this question is a structure of 
+the command line that you are expected to give along with what 
+each feature stand for.   
+
+From the `build` directory, use the following command line structure:
 
 ```bash
 ./brusselator \
-<solver> \
-<nx> \
-<ny> \
-<tEnd> \
-<dt> \
+<solver_name> \   **name of the numerical solver
+<nx> \   **number of cells in x direction
+<ny> \   **number of cells in y direction
+<tEnd> \ **end time
+<dt> \    **time step
 <writeInterval> \
-<Ca> \
+<Ca> \                **Ca & Cb are reaction constants
 <Cb>
 ```
+
+
+# Running a single Simulation 
 
 Example using the Runge-Kutta solver
 

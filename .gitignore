@@ -1,42 +1,57 @@
 #--------------------------
-#Build directory
+#BUILD DIRECTORIES
 #--------------------------
-build/
+/build/
 
-results/
-*.o
-*.so
-*.a
+
+#--------------------------
+/results/
+#--------------------------
+
+#==========================
+#Simulation outputs
+#==========================
+
 *.vtu
 *.vti
 *.vtk
 *.log
 
-#--------------------------
-#CMake generated files
-#--------------------------
+#============================
+# CMake generated files
+#===========================
+
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 Makefile
 compile_commands.json
 
-#------------------------------
-#Executables
-#------------------------------
-brusselator
-
 #--------------------------------
 #Python virtual environment
 #--------------------------------
 .venv/
-
+venv/
+env/
 #-------------------------------
-# Python cache
+# Python cache and compiled files
 #-------------------------------
 __pycache__/
-*.pyc
-*.pyo
+
+
+#-------------------------------
+# Pytest cache and test coverage
+#-------------------------------
+
+.pytest_cache/
+
+#-------------------------------
+# Temporary files and logs
+#-------------------------------
+*.log
+*.tmp
+*.swp
+*~
 
 # ==========================================================
 # Jupyter
@@ -54,3 +69,11 @@ __pycache__/
 # ==========================================================
 .DS_Store
 Thumbs.db
+.Trash-*/
+
+#==========================================================
+# Environment variables and local secrets
+#==========================================================
+
+.env
+.env.*

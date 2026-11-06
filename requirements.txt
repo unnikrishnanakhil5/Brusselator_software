@@ -1,6 +1,12 @@
-1. numpy>=2.0
-2. matplotlib>=3.8
-3. pyvista>=0.46
-4. vtk>=9.3
-5. jupyterlab>=4.0
-6. ipykernel>=6.0
+ipykernel==7.3.0   # Jupyter Notebook environment
+jupyter==1.1.1
+notebook==7.5.7
+
+numpy==2.4.6      # Numerical computing and data processing
+pandas==3.0.3
+
+pytest==9.2.0    # Automated testing
+
+matplotlib==3.10.9 # Visualisation and post-processing
+pyvista==0.48.4
+vtk==9.6.2
