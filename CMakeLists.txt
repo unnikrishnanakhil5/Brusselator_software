@@ -49,3 +49,32 @@ target_link_libraries(brusselator PRIVATE VTK::CommonCore
 #Installation rule
 install(TARGETS brusselator DESTINATION bin)
 install(DIRECTORY include/ DESTINATION include)
+
+# Enable testing
+enable_testing()
+
+# find GoogleTest package
+find_package(GTest REQUIRED)
+
+# Add source files for testing
+set(SOURCES_TEST
+    tests/unit/test_laplacian.cpp
+    tests/unit/test_reaction.cpp
+    tests/unit/test_jacobian.cpp
+    src/brusselator.cpp
+)
+
+#Create unit test executable
+add_executable(unit_tests ${SOURCES_TEST})
+
+# Add external libraries required for testing
+target_link_libraries(unit_tests
+       	PRIVATE
+	GTest::gtest_main
+       	Eigen3::Eigen
+)
+
+# Register tests with CTest
+include(GoogleTest)
+gtest_discover_tests(unit_tests)
+

@@ -1,7 +1,7 @@
 # C++ Lecture Environment
 # Usage:
 #   Build:  docker build -t brusselator-image .
-#   Run:   docker run -it --hostname mycdfsolver-container -p 8888:8888 -v $(pwd):/workspace pt4sc-image
+#   Run:   docker run -it --hostname mycdfsolver-container -p 8888:8888 -v $(pwd):/workspace brusselator-image
 
 # Base on minimal Debian image
 FROM debian:stable-slim
@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y \
     tree \
     paraview \
     libxcb-cursor0 \
+    libgtest-dev \
     libeigen3-dev \
     libvtk9-dev \
     && apt-get clean \
@@ -32,9 +33,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /workspace
 
 # add custom configs
-COPY configs/custom_bashrc /root/.bashrc
-COPY configs/neovim_config /root/.config/nvim/init.lua
-COPY configs/jupyter_lab_config.py /root/.jupyter/
+COPY custom_bashrc /root/.bashrc
+COPY neovim_config /root/.config/nvim/init.lua
+COPY jupyter_lab_config.py /root/.jupyter/
 
 # Open bash shell
 CMD ["/bin/bash"]

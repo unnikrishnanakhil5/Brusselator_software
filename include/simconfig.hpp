@@ -33,6 +33,7 @@ class SimulationConfig
     bool reactionEnabled= true;
 
     std::string outputDirectory = "../results";
+    std::string outputDirectory1 = "../results/Implicit";
 
     Eigen::SparseMatrix<double> A;
     Eigen::SparseMatrix<double> A_tilde;

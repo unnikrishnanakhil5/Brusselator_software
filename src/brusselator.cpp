@@ -117,16 +117,6 @@ Eigen::SparseMatrix<double> brusselator::buildA(const SimulationConfig& config)
 		}
 	}
 
-	//for (const auto& t : triplets)
-	//{
-		//std::cout <<"("
-			//<< t.row() << "," 
-			///<< t.col() <<"," 
-			//<< t.value()
-		       	//<< ")\n";
-
-	//}
-
 	A.setFromTriplets(triplets.begin(),triplets.end());
 
 	return A;
@@ -264,8 +254,9 @@ Eigen::VectorXd brusselator::initializeState(
 
 Eigen::VectorXd brusselator::computeReaction(const Eigen::VectorXd& C, const SimulationConfig& config)
 {
+    const int N = config.nx * config.ny;
     //Allocate reaction vector
-    Eigen::VectorXd reaction= Eigen::VectorXd::Zero(2*config.N);
+    Eigen::VectorXd reaction= Eigen::VectorXd::Zero(2*N);
 
     //Return immediately if reactions are disabled
     
@@ -276,14 +267,14 @@ Eigen::VectorXd brusselator::computeReaction(const Eigen::VectorXd& C, const Sim
 
     //Compute Brusselator source terms
     
-    for (int i=0;i<config.N; i++)
+    for (int i=0;i<N; i++)
     {
         double C1=C(i);
-        double C2=C(i+config.N);
+        double C2=C(i+N);
 
         reaction(i)=config.Ca+C1*C1*C2-config.Cb*C1-C1;
 
-        reaction(i+config.N)=config.Cb*C1-C1*C1*C2;
+        reaction(i+N)=config.Cb*C1-C1*C1*C2;
     }
 
     return reaction;
@@ -334,17 +325,18 @@ Eigen::VectorXd brusselator::computeResidual(const Eigen::VectorXd& Cguess, cons
 
 Eigen::SparseMatrix<double> brusselator::assembleJacobian(const Eigen::VectorXd& Cguess, const SimulationConfig& config)
 {
+    const int N = config.nx * config.ny;
     //-------------------------------------------------
     //Assembling of reaction Jacobian Jw
     //-------------------------------------------------
 
     std::vector<Eigen::Triplet<double>> triplets;
 
-    for (int cell=0; cell<config.N; cell++)
+    for (int cell=0; cell<N; cell++)
     {
         //global indices
         int c1=cell;
-        int c2=cell+config.N;
+        int c2=cell+N;
 
         double C1=Cguess(c1);
         double C2=Cguess(c2);
@@ -353,8 +345,8 @@ Eigen::SparseMatrix<double> brusselator::assembleJacobian(const Eigen::VectorXd&
         //Local reaction Jacobian entries
         //---------------------------------------------
 
-        double dw1_dC1= -(config.Ca+1.0)+ 2.0 * C1* C2;
-        double dw1_dC2= C1*C2;
+        double dw1_dC1= -(config.Cb+1.0)+ 2.0 * C1* C2;
+        double dw1_dC2= C1*C1;
 
         double dw2_dC1= config.Cb - 2.0*C1*C2;
         double dw2_dC2= -C1*C1;
@@ -370,14 +362,14 @@ Eigen::SparseMatrix<double> brusselator::assembleJacobian(const Eigen::VectorXd&
         triplets.emplace_back(c2,c2,dw2_dC2);
     }
 
-    Eigen::SparseMatrix<double> Jw(2*config.N, 2*config.N);
+    Eigen::SparseMatrix<double> Jw(2*N, 2*N);
     Jw.setFromTriplets(triplets.begin(),triplets.end());
 
     //----------------------------------------------------
     //Identity matrix
     //----------------------------------------------------
 
-    Eigen::SparseMatrix<double> I(2*config.N,2*config.N);
+    Eigen::SparseMatrix<double> I(2*N,2*N);
     I.setIdentity();
 
     //----------------------------------------------------
@@ -386,7 +378,7 @@ Eigen::SparseMatrix<double> brusselator::assembleJacobian(const Eigen::VectorXd&
     
     if (!config.reactionEnabled)
     {
-        Eigen::SparseMatrix<double> I(2*config.N,2*config.N);
+        Eigen::SparseMatrix<double> I(2*N,2*N);
         I.setIdentity();
 
         return I-config.dt*config.A_tilde;
