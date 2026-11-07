@@ -132,11 +132,26 @@ int main(int argc, char*argv[])
 
     if(method == rk4)
     {
+        std::ostringstream CbLabel;
+
+        CbLabel << std::fixed
+                << std::setprecision(2)
+                << config.Cb;
+        // Create output directory for capturing Runge-Kutta results
+        config.outputDirectory1 = "../results/Runge-Kutta/";
+
+        std::filesystem::create_directories(config.outputDirectory1);
+
+        //Create output directory based on Cb
+        config.outputDirectory= "../results/varyCb/Cb_" + CbLabel.str() + "/";
+
+        //Create directory if it does not exist
+        std::filesystem::create_directories(config.outputDirectory);
+
+
+
         std::cout << "Classical Runge-Kutta solver (RK4)\n";
 
-        config.outputDirectory = "../results/Runge-Kutta/";
-
-        std::filesystem::create_directories(config.outputDirectory);
     }
     else if(method == implicit)
     {
@@ -233,7 +248,38 @@ int main(int argc, char*argv[])
 
         if(timestep % writeEvery == 0)
         {
-            writeVTK(C, config, timestep);
+            if(method == implicit)
+            {
+                //First output directory
+                std::string originalDirectory = config.outputDirectory;
+
+                config.outputDirectory = config.outputDirectory1;
+                writeVTK(C, config, timestep);
+
+                //Second output directory
+                config.outputDirectory = originalDirectory;
+
+                writeVTK(C, config, timestep);
+            }
+            else if(method == rk4)
+            {
+                 //First output directory
+                std::string originalDirectory = config.outputDirectory;
+
+                config.outputDirectory = config.outputDirectory1;
+                writeVTK(C, config, timestep);
+
+                //Second output directory
+                config.outputDirectory = originalDirectory;
+
+                writeVTK(C, config, timestep);
+
+
+            }
+            else
+            {
+                writeVTK(C, config, timestep);
+            }
 
             appendPVDentry(timestep, t, config);
         }
