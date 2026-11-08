@@ -29,8 +29,8 @@ TEST(JacobianTest, ReactionJacobianEntries)
     SimulationConfig config;
 
     config.nx=2;
-    config.nx=2;
-    config.N=4;
+    config.ny=2;
+    config.N= config.nx * config.ny;
 
     config.Ca=1.0;
     config.Cb=3.0;

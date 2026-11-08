@@ -9,7 +9,9 @@ TEST(ReactionTest, ComputesCorrectReactionTerms)
     // Creating the simulation configuration
     SimulationConfig config;
 
-    config.N = 4; // total number of grid cells
+    config.nx = 2;
+    config.ny = 2;
+    config.N = config.nx * config.ny; // total number of grid cells
     config.Ca = 1.0;
     config.Cb = 3.0;
 
@@ -39,9 +41,11 @@ TEST(ReactionTest, ComputeCorrectReactionTerms)
 {
     SimulationConfig config;
 
-    config.N=4;
-    config.Ca=1;
-    config.Cb=3;
+    config.nx = 2;
+    config.ny = 2;
+    config.N = config.nx * config.ny;
+    config.Ca = 1;
+    config.Cb = 3;
 
     config.reactionEnabled= false;
 

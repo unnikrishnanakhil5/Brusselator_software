@@ -1,15 +1,29 @@
 #!/bin/bash
 
 
+# Check whether sufficient arguments are provided
+if [ "$#" -lt 3 ]; then
+    echo "Usage: ./varyCb.sh <variationName> <parameter> <values...>"
+    echo "Example: ./varyCb.sh Variation_Cb Cb 1.5 2.0 2.5 3.0"
+    exit 1
+fi
+
+
 variationName=$1
 parameter=$2
 
-shift 3
+shift 2
 
 values=("$@")
 
 echo "Variation name: $variationName"
 echo "Parameter     : $parameter"
+
+# Check whether the parameter is supported
+if [[ "$parameter" != "Cb" && "$parameter" != "dt" ]]; then
+    echo "Error: Unsupported parameter '$parameter'"
+    exit 1
+fi
 
 
 # Default configuration of the solver similar to that in config
