@@ -1,4 +1,4 @@
-# Scientific Computing – Final Project
+# Brusselator Reaction-Diffusion solver software
 
 ## 1. Project Overview
 
